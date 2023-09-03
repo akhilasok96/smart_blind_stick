@@ -1,0 +1,5 @@
+ultralytics==8.0.159
+numpy
+matplotlib
+opencv-python~=4.8.0.76
+gTTS~=2.3.2

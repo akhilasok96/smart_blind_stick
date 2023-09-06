@@ -4,18 +4,14 @@ import cv2
 from gtts import gTTS
 import os
 
-# Initialize the webcam
 cap = cv2.VideoCapture(0)
 
-# Initialize the video writer
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
-out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', "J", 'P', 'G'), 10, (frame_width, frame_height))
+out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
 
-# Load YOLO model
 model = YOLO('yolov8n.pt')
 
-# Class names for object detection
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
               "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
               "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
@@ -27,6 +23,8 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
               "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
               "teddy bear", "hair drier", "toothbrush"
               ]
+
+detected_classes = set()  # Set to store detected classes
 
 while True:
     success, img = cap.read()
@@ -48,16 +46,19 @@ while True:
             cv2.rectangle(img, (x1, y1), c2, [255, 0, 255], -1, cv2.LINE_AA)
             cv2.putText(img, label, (x1, y1 - 2), 0, 1, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
 
-            # Convert text to speech and play the audio
-            tts = gTTS(text=class_name, lang='en')
-            tts.save("object_audio.mp3")
-            os.system("mpg321 object_audio.mp3")  # Adjust the command to your system's audio player
+            # Check if class name has been announced already for this object
+            if class_name not in detected_classes:
+                tts = gTTS(text=class_name, lang='en')
+                tts.save("object_audio.mp3")
+                os.system("mpg321 object_audio.mp3")
+                detected_classes.add(class_name)
 
     out.write(img)
     cv2.imshow("Image", img)
-    if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to exit the loop
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 out.release()
 cap.release()
 cv2.destroyAllWindows()
+

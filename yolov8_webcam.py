@@ -24,7 +24,9 @@ classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "trai
               "teddy bear", "hair drier", "toothbrush"
               ]
 
-detected_classes = set()  # Set to store detected classes
+box_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+
+detected_classes = set()
 
 while True:
     success, img = cap.read()
@@ -32,10 +34,11 @@ while True:
 
     for r in results:
         boxes = r.boxes
-        for box in boxes:
+        for i, box in enumerate(boxes):
             x1, y1, x2, y2 = box.xyxy[0]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
+            color = box_colors[i % len(box_colors)]
+            cv2.rectangle(img, (x1, y1), (x2, y2), color, 3)
 
             conf = math.ceil((box.conf[0] * 100)) / 100
             cls = int(box.cls[0])
@@ -43,10 +46,9 @@ while True:
             label = f'{class_name}{conf}'
             t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
             c2 = x1 + t_size[0], y1 - t_size[1] - 3
-            cv2.rectangle(img, (x1, y1), c2, [255, 0, 255], -1, cv2.LINE_AA)
+            cv2.rectangle(img, (x1, y1), c2, color, -1, cv2.LINE_AA)
             cv2.putText(img, label, (x1, y1 - 2), 0, 1, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
 
-            # Check if class name has been announced already for this object
             if class_name not in detected_classes:
                 tts = gTTS(text=class_name, lang='en')
                 tts.save("object_audio.mp3")
@@ -61,4 +63,3 @@ while True:
 out.release()
 cap.release()
 cv2.destroyAllWindows()
-
